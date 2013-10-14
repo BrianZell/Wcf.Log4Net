@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="CompleteBuild" ToolsVersion="4.0">
+    
+	<PropertyGroup>
+        <MSBuildExtensionsPath>Lib\MSBuildCommunityTasks</MSBuildExtensionsPath>
+    </PropertyGroup>
+    <UsingTask TaskName="MSBuild.Community.Tasks.Zip" AssemblyFile="$(MSBuildExtensionsPath)\MSBuild.Community.Tasks.dll" />
+    <UsingTask TaskName="MSBuild.Community.Tasks.NUnit" AssemblyFile="$(MSBuildExtensionsPath)\MSBuild.Community.Tasks.dll" />
+	
+    <ItemGroup>
+        <ProjectToBuild Include="Src\*.sln" />
+    </ItemGroup>
+    <ItemGroup>
+        <BuildOutput Include="Src\Wcf.Log4Net\bin\Release\Wcf.Log4Net.dll" />
+    </ItemGroup>
+	<ItemGroup>
+        <TestOutput Include="Src\Wcf.Log4Net.IntegrationTest\bin\Release\Wcf.Log4Net.IntegrationTest.dll" />
+    </ItemGroup>
+    <ItemGroup>
+        <NuSpecFiles Include="NuGet\*.nuspec" />
+        <NuGetPackageScripts Include="NuGet\*.ps1" />
+    </ItemGroup>
+    <PropertyGroup>
+        <ReleaseFolder>Release</ReleaseFolder>
+    </PropertyGroup>
+	<PropertyGroup>
+        <ZipName>Wcf.Log4Net.zip</ZipName>
+    </PropertyGroup>
+    <!--Optional Clean targets-->
+    <Target Name="Clean">
+        <MSBuild Projects="@(ProjectToBuild)" Targets="Clean" Properties="Configuration=Release" />
+    </Target>
+    <!--Build tasks-->
+    <Target Name="DeleteReleaseFolder">
+        <RemoveDir Directories="$(ReleaseFolder)" />
+    </Target>
+    <Target Name="MakeReleaseFolder" DependsOnTargets="DeleteReleaseFolder">
+        <MakeDir Directories="$(ReleaseFolder)" Condition="!Exists($(ReleaseFolder))" />
+    </Target>
+    <Target Name="Build" DependsOnTargets="MakeReleaseFolder">
+        <MSBuild Projects="@(ProjectToBuild)" Properties="Configuration=Release" />
+    </Target>
+    <Target Name="Test" DependsOnTargets="Build">
+        <NUnit Assemblies="@(TestOutput)" 
+               ToolPath="Lib\NUnitRunnerMSBuild\runner" />
+    </Target>
+    <Target Name="CopyToReleaseFolder" DependsOnTargets="Test">
+        <Copy SourceFiles="@(BuildOutput)" DestinationFolder="$(ReleaseFolder)" />
+        <Copy SourceFiles="@(NuGetPackageScripts)" DestinationFolder="$(ReleaseFolder)" />
+    </Target>
+    <Target Name="ZipReleaseFiles" DependsOnTargets="CopyToReleaseFolder">
+        <ItemGroup>
+            <FilesToZip Include="$(ReleaseFolder)\*.*" />
+        </ItemGroup>
+        <Zip Files="@(FilesToZip)"
+             WorkingDirectory="$(ReleaseFolder)"
+             ZipFileName="$(ReleaseFolder)\$(ZipName)" />
+    </Target>
+    <Target Name="CreateTemporaryNuGetSpecFiles">
+        <PropertyGroup>
+            <NuGetOutputFolder>NuGetPackages</NuGetOutputFolder>
+        </PropertyGroup>
+        <RemoveDir Directories="$(NuGetOutputFolder)" />
+        <Copy SourceFiles="@(NuSpecFiles)" DestinationFolder="$(NuGetOutputFolder)">
+            <Output TaskParameter="CopiedFiles" ItemName="TempNuspecFiles" />
+        </Copy>
+    </Target>
+    <Target Name="UpdateNuspecVersion" DependsOnTargets="CreateTemporaryNuGetSpecFiles;CopyToReleaseFolder" Outputs="%(TempNuspecFiles.Identity)">
+        <PropertyGroup>
+            <TempNuspecFilePath>%(TempNuspecFiles.FullPath)</TempNuspecFilePath>
+            <AssemblyFile>$(ReleaseFolder)\%(TempNuspecFiles.Filename).dll</AssemblyFile>
+        </PropertyGroup>
+        <GetAssemblyIdentity AssemblyFiles="$(AssemblyFile)">
+            <Output TaskParameter="Assemblies" ItemName="AssemblyInfo" />
+        </GetAssemblyIdentity>
+        <PropertyGroup>
+            <Version>%(AssemblyInfo.Version)</Version>
+            <SemanticVersion>$(Version.Substring(0, $(Version.LastIndexOf('.'))))</SemanticVersion>
+        </PropertyGroup>
+        <XmlPoke XmlInputPath="$(TempNuspecFilePath)"
+                 Query="//metadata/version"
+                 Value="$(SemanticVersion)" />
+        <XmlPoke XmlInputPath="$(TempNuspecFilePath)"
+                 Query="//metadata/dependencies/dependency[contains(@id, 'wcf.log4net')]/@version"
+                 Value="$(SemanticVersion)" />
+    </Target>
+    <Target Name="NuGetPack" DependsOnTargets="UpdateNuspecVersion">
+        <Exec Command="Lib\NuGet\nuget.exe pack %(TempNuspecFiles.FullPath) -BasePath $(ReleaseFolder) -OutputDirectory $(NuGetOutputFolder)" />
+    </Target>
+    <Target Name="CleanTemporaryNuGetSpecFiles" DependsOnTargets="NuGetPack">
+        <Delete Files="@(TempNuspecFiles)" />
+    </Target>
+    <Target Name="CompleteBuild" DependsOnTargets="ZipReleaseFiles;CleanTemporaryNuGetSpecFiles" />
+</Project>
