@@ -2,7 +2,7 @@
 <package>
     <metadata>
         <id>Wcf.Log4Net</id>
-        <version>0.1</version>
+        <version>0</version>
         <title>Wcf.Log4Net</title>
         <authors>Brian Zell</authors>
         <owners>Brian Zell</owners>

@@ -1,20 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="CompleteBuild" ToolsVersion="4.0">
-    
-	<PropertyGroup>
-        <MSBuildExtensionsPath>Lib\MSBuildCommunityTasks</MSBuildExtensionsPath>
-    </PropertyGroup>
-    <UsingTask TaskName="MSBuild.Community.Tasks.Zip" AssemblyFile="$(MSBuildExtensionsPath)\MSBuild.Community.Tasks.dll" />
-    <UsingTask TaskName="MSBuild.Community.Tasks.NUnit" AssemblyFile="$(MSBuildExtensionsPath)\MSBuild.Community.Tasks.dll" />
-	
-    <ItemGroup>
+	<ItemGroup>
         <ProjectToBuild Include="Src\*.sln" />
     </ItemGroup>
     <ItemGroup>
         <BuildOutput Include="Src\Wcf.Log4Net\bin\Release\Wcf.Log4Net.dll" />
     </ItemGroup>
 	<ItemGroup>
-        <TestOutput Include="Src\Wcf.Log4Net.IntegrationTest\bin\Release\Wcf.Log4Net.IntegrationTest.dll" />
+        <TestAssemblies Include="Src\Wcf.Log4Net.IntegrationTest\bin\Release\Wcf.Log4Net.IntegrationTest.dll" />
     </ItemGroup>
     <ItemGroup>
         <NuSpecFiles Include="NuGet\*.nuspec" />
@@ -23,9 +16,7 @@
     </ItemGroup>
     <PropertyGroup>
         <ReleaseFolder>Release</ReleaseFolder>
-    </PropertyGroup>
-	<PropertyGroup>
-        <ZipName>Wcf.Log4Net.zip</ZipName>
+		<PackageName>wcf.log4net</PackageName>
     </PropertyGroup>
     <!--Optional Clean targets-->
     <Target Name="Clean">
@@ -42,25 +33,16 @@
         <MSBuild Projects="@(ProjectToBuild)" Properties="Configuration=Release" />
     </Target>
     <Target Name="Test" DependsOnTargets="Build">
-        <NUnit Assemblies="@(TestOutput)" 
-               ToolPath="Lib\NUnitRunnerMSBuild\runner" />
+		<Exec Command="Lib\NUnitRunnerMSBuild\runner\nunit-console.exe @(TestAssemblies) /framework=4.0 /nologo" />
     </Target>
     <Target Name="CopyToReleaseFolder" DependsOnTargets="Test">
         <Copy SourceFiles="@(BuildOutput)" DestinationFolder="$(ReleaseFolder)" />
         <Copy SourceFiles="@(NuGetPackageScripts)" DestinationFolder="$(ReleaseFolder)" />
 		<Copy SourceFiles="@(NuGetPackageTransform)" DestinationFolder="$(ReleaseFolder)" />
     </Target>
-    <Target Name="ZipReleaseFiles" DependsOnTargets="CopyToReleaseFolder">
-        <ItemGroup>
-            <FilesToZip Include="$(ReleaseFolder)\*.*" />
-        </ItemGroup>
-        <Zip Files="@(FilesToZip)"
-             WorkingDirectory="$(ReleaseFolder)"
-             ZipFileName="$(ReleaseFolder)\$(ZipName)" />
-    </Target>
     <Target Name="CreateTemporaryNuGetSpecFiles">
         <PropertyGroup>
-            <NuGetOutputFolder>NuGetPackages</NuGetOutputFolder>
+            <NuGetOutputFolder>$(ReleaseFolder)\NuGetPackages</NuGetOutputFolder>
         </PropertyGroup>
         <RemoveDir Directories="$(NuGetOutputFolder)" />
         <Copy SourceFiles="@(NuSpecFiles)" DestinationFolder="$(NuGetOutputFolder)">
@@ -83,7 +65,7 @@
                  Query="//metadata/version"
                  Value="$(SemanticVersion)" />
         <XmlPoke XmlInputPath="$(TempNuspecFilePath)"
-                 Query="//metadata/dependencies/dependency[contains(@id, 'wcf.log4net')]/@version"
+                 Query="//metadata/dependencies/dependency[contains(@id, '$(PackageName)')]/@version"
                  Value="$(SemanticVersion)" />
     </Target>
     <Target Name="NuGetPack" DependsOnTargets="UpdateNuspecVersion">
@@ -92,5 +74,5 @@
     <Target Name="CleanTemporaryNuGetSpecFiles" DependsOnTargets="NuGetPack">
         <Delete Files="@(TempNuspecFiles)" />
     </Target>
-    <Target Name="CompleteBuild" DependsOnTargets="ZipReleaseFiles;CleanTemporaryNuGetSpecFiles" />
+    <Target Name="CompleteBuild" DependsOnTargets="CopyToReleaseFolder;CleanTemporaryNuGetSpecFiles" />
 </Project>
