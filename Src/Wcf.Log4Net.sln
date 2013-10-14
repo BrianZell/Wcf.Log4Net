@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wcf.Log4Net", "Wcf.Log4Net\Wcf.Log4Net.csproj", "{47A4BD9F-6D38-472E-9EA6-9825A9B7E12F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wcf.Log4Net.IntegrationTest", "Wcf.Log4Net.IntegrationTest\Wcf.Log4Net.IntegrationTest.csproj", "{21472C37-0DD7-43B3-99ED-5DA95C07E210}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wcf.Log4Net.Example", "Wcf.Log4Net.Example\Wcf.Log4Net.Example.csproj", "{AB171C30-D8D0-412D-97A1-F5A7C46E2E48}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{47A4BD9F-6D38-472E-9EA6-9825A9B7E12F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47A4BD9F-6D38-472E-9EA6-9825A9B7E12F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47A4BD9F-6D38-472E-9EA6-9825A9B7E12F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47A4BD9F-6D38-472E-9EA6-9825A9B7E12F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21472C37-0DD7-43B3-99ED-5DA95C07E210}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21472C37-0DD7-43B3-99ED-5DA95C07E210}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21472C37-0DD7-43B3-99ED-5DA95C07E210}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21472C37-0DD7-43B3-99ED-5DA95C07E210}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB171C30-D8D0-412D-97A1-F5A7C46E2E48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB171C30-D8D0-412D-97A1-F5A7C46E2E48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB171C30-D8D0-412D-97A1-F5A7C46E2E48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB171C30-D8D0-412D-97A1-F5A7C46E2E48}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
