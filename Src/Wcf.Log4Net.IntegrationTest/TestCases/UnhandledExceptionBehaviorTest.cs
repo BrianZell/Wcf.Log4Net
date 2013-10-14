@@ -28,15 +28,19 @@ namespace Wcf.Log4Net.IntegrationTest
             hierarchy.Configured = true;
             memoryAppender.Clear();
 
+            var clientEndpoint = new ServiceEndpoint(ContractDescription.GetContract(typeof(IExceptionThrowerService)),
+                                                      new NetNamedPipeBinding(),
+                                                      new EndpointAddress(testUri));
+
             var serviceEndpoint = new ServiceEndpoint(ContractDescription.GetContract(typeof(IExceptionThrowerService)),
                                                       new NetNamedPipeBinding(),
                                                       new EndpointAddress(testUri));
 
             var factory =
-                    new ChannelFactory<IExceptionThrowerService>(serviceEndpoint);
+                    new ChannelFactory<IExceptionThrowerService>(clientEndpoint);
 
             // Act
-            using (var host = new ServiceHost(typeof (ExceptionThrowerService)))
+            using (var host = new ServiceHost(typeof(ExceptionThrowerService)))
             {
                 host.AddServiceEndpoint(serviceEndpoint);
                 host.Description.Behaviors.Add(new LogUnhandledExceptionBehavior());
@@ -51,8 +55,6 @@ namespace Wcf.Log4Net.IntegrationTest
                 {
                     //swallow the returned exception (we know it's coming back)
                 }
-
-                host.Close();
             }
             
             // Assert
